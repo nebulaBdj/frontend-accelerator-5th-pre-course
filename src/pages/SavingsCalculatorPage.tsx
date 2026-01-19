@@ -4,7 +4,17 @@ import { SavingsProduct } from 'api/savings-products/types';
 import CalculattionResultListItem from 'components/savings-products/CalculationResultListItem';
 import SavingsProductItem from 'components/savings-products/SavingsProductItem';
 import { useState } from 'react';
-import { Border, ListHeader, ListRow, NavigationBar, SelectBottomSheet, Spacing, Tab, TextField } from 'tosslib';
+import {
+  Assets,
+  Border,
+  ListHeader,
+  ListRow,
+  NavigationBar,
+  SelectBottomSheet,
+  Spacing,
+  Tab,
+  TextField,
+} from 'tosslib';
 import { calculateExpectedProfit, calculateSuggestMonthlyPayment, diff } from 'utils/calculate';
 import { formatNumberToKo } from 'utils/formatting';
 import { parseFormattedNumber } from 'utils/parse';
@@ -82,10 +92,12 @@ export function SavingsCalculatorPage() {
           return displayProducts.length > 0 ? (
             <>
               {displayProducts.map(product => (
-                <SavingsProductItem
+                <ListRow
                   key={product.id}
-                  product={product}
-                  selectedProductId={selectedSavingsProduct && selectedSavingsProduct.id}
+                  contents={<SavingsProductItem product={product} />}
+                  right={
+                    isSelected(product.id, selectedSavingsProduct?.id) && <Assets.Icon name="icon-check-circle-green" />
+                  }
                   onClick={() => setSelectedSavingsProduct(product)}
                 />
               ))}
@@ -160,17 +172,18 @@ export function SavingsCalculatorPage() {
           <Spacing size={12} />
 
           {joinAvailableProducts.length > 0 ? (
-            [...joinAvailableProducts]
-              .sort((a, b) => b.annualRate - a.annualRate)
-              .slice(0, 2)
-              .map(product => (
-                <SavingsProductItem
+            takeTopTwo([...joinAvailableProducts].sort(sortByAnnualRateDesc)).map(product => {
+              return (
+                <ListRow
                   key={product.id}
-                  product={product}
-                  selectedProductId={selectedSavingsProduct && selectedSavingsProduct.id}
+                  contents={<SavingsProductItem product={product} />}
+                  right={
+                    isSelected(product.id, selectedSavingsProduct?.id) && <Assets.Icon name="icon-check-circle-green" />
+                  }
                   onClick={() => setSelectedSavingsProduct(product)}
                 />
-              ))
+              );
+            })
           ) : (
             <ListRow
               contents={<ListRow.Texts type="1RowTypeA" top="상품이 존재하지 않습니다. 입력값을 모두 입력해주세요." />}
@@ -181,3 +194,15 @@ export function SavingsCalculatorPage() {
     </>
   );
 }
+
+const sortByAnnualRateDesc = (productA: SavingsProduct, productB: SavingsProduct) => {
+  return productB.annualRate - productA.annualRate;
+};
+
+const takeTopTwo = (list: SavingsProduct[]) => {
+  return list.slice(0, 2);
+};
+
+const isSelected = (productId: string | undefined, selectedProductId: string | undefined) => {
+  return productId === selectedProductId;
+};
